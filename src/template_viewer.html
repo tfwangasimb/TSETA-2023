@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+	<title>multiple sequence alignment Bowser</title>
+	<meta charset="utf-8">
+	<meta name="description" content="Gene Bowser">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		* {
+			font-family: Arial;
+		}
+		.plot {
+			font-size: 16pt;/* 16pt */
+		}
+		html, body {
+			margin: 0px;
+			padding: 0px;
+		}
+		/* .body {
+			font-family: sans-serif;
+		} */
+		#el_div_status {
+			display: flex;
+		}
+		#el_div_status > * {
+			flex: 1;
+		}
+		.colorset {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		.colorset > * {
+			margin: 0.25em 0;
+		}
+		.color-icon {
+			padding: 0 0.5em;
+			margin-right: 0.5em;
+			/* border: 1px solid black; */
+		}
+
+		.GUI {
+			font-size: initial;
+		}
+
+		table.GUI {
+			border-collapse: collapse;
+		}
+		
+		.plot-outer-layout td {
+			padding: 0px;
+			vertical-align: top;
+		}
+		
+		.color-set-group {
+			display: flex;
+		}
+		.color-set-group > .placehold {
+			flex: 1;
+		}
+		.color-set-group > .colorset {
+			flex: 2;
+		}
+		
+		.markers {
+			line-height: 32px;
+			margin-bottom: 5px;
+			vertical-align: middle;
+			/* transition: 1s all; */
+		}
+		.gc-plot {
+			line-height: 64px;
+			margin-bottom: 5px;
+			vertical-align: middle;
+		}
+
+		#el_view_length {
+			display: inline-flex;
+		}
+		#el_view_length > * {
+			flex: 1;
+			text-align: center;
+			box-shadow: inset 0 0 0px 1px black;
+			padding: 0px 0.5em;
+		}
+
+		.checkbox {
+			border: 1px solid gray;
+			border-radius: 0.1em;
+			padding: 0.25em 0.5em;
+			display: inline-block;
+		}
+
+		.color-table {
+			display: none;
+		}
+	</style>
+	<style id="css_20221017">
+		#tetrad-mode-rows > .markers:nth-last-child(1) {
+			margin-bottom: 0px;
+		}
+		#snp-mode-rows > .markers:nth-last-child(1) {
+			margin-bottom: 0px;
+		}
+	</style>
+	
+	<script>
+		// if ("serviceWorker" in navigator) {
+		// 	navigator.serviceWorker.register("sw.js", { scope: "" }).then(function(reg) {
+		// 		// registration worked
+		// 		console.log("Registration succeeded. Scope is " + reg.scope);
+		// 	}).catch(function(error) {
+		// 		// registration failed
+		// 		console.log("Registration failed with " + error);
+		// 	});
+		// }
+	</script>
+
+	<script id="dataset.json" type="application/json"></script>
+</head>
+<body style="overflow: visible; transform-style: preserve-3d;">
+	<div id="top_GUI" class="GUI" style="position: sticky; top: 0; background: rgba(255,255,255,0.9); transform: translateZ(0px);">
+		<table class="GUI position-info" style="width: 100%;">
+			<tr>
+				<td>
+					<div style="display: flex;">
+						<div style="margin-right: 0.5em; padding-right: 0.5em;">
+							<label>
+								appearance
+								<select id="el_select_appearance" value="fill">
+									<option value="diff">diff</option>
+									<option value="fill">fill</option>
+								</select>
+							</label>
+						</div>
+						<div style="margin-right: 0.5em; padding-right: 0.5em;">
+							<label>Chromosome <input type="number" id="el_input_chr" value="" min="1" max="7" /></label>
+						</div>
+					</div>
+				</td>
+				<td id="status" colspan="2">
+				</td>
+				<td>
+					<button id="el_show_all" style="width: 100%;">show all</button>
+				</td>
+			</tr>
+		</table>
+		<table class="GUI position-info" style="width: 100%;">
+			<tr>
+				<td style="min-width: 10em;">pos: <span id="el_display_bp_pos"></span></td>
+				<td>start: <input id="el_input_start" type="number" value="1" min="1" /></td>
+				<td>end: <input id="el_input_end" type="number" value="2" min="2" /></td>
+				<td>
+					<label>search: <input id="search_gene" type="search" placeholder="ID or name" /></label>
+					<select id="search_gene_select" type="search" style="min-width: 10em;">
+						<option disabled>----</option>
+					</select>
+					<button onclick="search_gene_select?.onchange?.()">go</button>
+				</td>
+				<td><div id="el_view_length" title="view length"></div></td>
+				<td><button id="el_set_ref_pos_from_ma">to ref pos</button></td>
+				<td><span id="scale"></span></td>
+			</tr>
+		</table>
+		<table class="GUI position-info" style="width: 100%;">
+			<tr>
+				<td style="min-width: 10em;" class="ref1">ref 1 pos: <span id="el_display_ref1_bp_pos"></span></td>
+				<td class="ref1">
+					<div>start: <input id="el_input_ref1_start" type="number" value="1" min="1" /></div>
+					<div>end: <input id="el_input_ref1_end" type="number" value="2" min="2" /></div>
+				</td>
+				<td class="ref1">
+					<div>
+						gene: <input id="ref1_gene" type="search" placeholder="ID or name" />
+						<select id="ref1_gene_select" style="min-width: 10em;">
+							<option disabled>----</option>
+							<!-- <option value="{ref:'Q',nChr,geneId}">Ch{{ nChr }}, {{ geneId }}</option> -->
+						</select>
+						<button onclick="ref1_gene_select?.onchange?.()">go</button>
+					</div>
+				</td>
+
+				<td style="min-width: 10em;" class="ref2">ref 2 pos: <span id="el_display_ref2_bp_pos"></span></td>
+				<td class="ref2">
+					<div>start: <input id="el_input_ref2_start" type="number" value="1" min="1" /></div>
+					<div>end: <input id="el_input_ref2_end" type="number" value="2" min="2" /></div>
+				</td>
+				<td class="ref2">
+					<div>
+						gene: <input id="ref2_gene" type="search" placeholder="ID or name"/>
+						<select id="ref2_gene_select" style="min-width: 10em;">
+							<option disabled>----</option>
+							<!-- <option value="{ref:'C',nChr,geneId}">Ch{{ nChr }}, {{ geneId }}</option> -->
+						</select>
+						<button onclick="ref2_gene_select?.onchange?.()">go</button>
+					</div>
+				</td>
+			</tr>
+		</table>
+
+		<hr />
+	</div>
+
+	<table id="plot-area" class="plot plot-outer-layout" style="width: 100%; border-collapse: collapse;">
+		<tr class="color-table">
+			<td>
+				<!--placehold-->
+			</td>
+			<td style="width: 100%;">
+				<div data-mode="snp-mode">
+					<div class="color-set-group">
+						<ul class="colorset">
+							<li><span id="el_dad_bk" class="color-icon" style="background: #00FFFF;"></span>Reference</li>
+							<li><span id="el_mom_bk" class="color-icon" style="background: #FF90CB;"></span>SNP</li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_deletion" class="color-icon" style="background: #FFFFFF; border: 0.5px solid black;"></span>deletion</li>
+						</ul>
+					</div>
+				</div>
+				<div data-mode="tetrad-mode">
+					<div class="color-set-group flex" data-mode="tetrad-mode" data-mode-type="tetrad-mode-1">
+						<ul class="colorset">
+							<li><span id="el_dad_bk" class="color-icon" style="background: #00FFFF;"></span><span class="Dad-name">QM6a</span></li>
+							<li><span id="el_mom_bk" class="color-icon" style="background: #FF90CB;"></span><span class="Dad-name">CBS999.97(<i>MAT1-1</i>)</span></li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_deletion" class="color-icon" style="background: #FFFFFF; border: 0.5px solid black;"></span>deletion</li>
+							<li><span id="el_rip" class="color-icon" style="background: #000000;"></span>RIP mutations</li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_31" class="color-icon" style="background: #00FF00;"></span>3:1 markers</li>
+							<li><span id="el_40" class="color-icon" style="background: #800080;"></span>4:0 markers</li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_1n3" class="color-icon" style="background: #00FF00;"></span>1n:3 markers</li>
+							<li><span id="el_3n1" class="color-icon" style="background: #00FF00;"></span>3n:1 markers</li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_2n2" class="color-icon" style="background: #00FF00;"></span>2n:2 markers</li>
+							<li><span id="el_4n0" class="color-icon" style="background: #000000;"></span>4n:0 markers</li>
+						</ul>
+						<div class="colorset" style="flex: 3;">
+							<li><span id="illegitimate_mutation" class="color-icon" style="background: #FF9800;"></span>illegitimate mutation markers</li>
+						</div>
+					</div>
+					<div class="color-set-group flex" data-mode="tetrad-mode" data-mode-type="tetrad-mode-2">
+						<ul class="colorset">
+							<li><span id="el_dad_bk" class="color-icon" style="background: #00FFFF;"></span><span class="Dad-name">QM6a</span></li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_mom_bk" class="color-icon" style="background: #FF90CB;"></span><span class="Mom-name">CBS999.97(<i>MAT1-1</i>)</span></li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_deletion" class="color-icon" style="background: #FFFFFF; border: 0.5px solid black;"></span>deletion</li>
+						</ul>
+						<ul class="colorset">
+							<li><span id="el_rip" class="color-icon" style="background: #000000;"></span>RIP mutations</li>
+						</ul>
+					</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td id="data-rows">
+				<div class="row-header" style="width: 14em; padding-right: 1em; text-align: right; display: flex; flex-direction: column;">
+					<!-- <div data-mode="snp-mode">
+						<div class="markers snp-reference" style="vertical-align: middle;"><span contenteditable="true" spellcheck="false">Reference</span></div>
+					</div> -->
+					<div id="tetrad-mode-rows" data-mode="tetrad-mode">
+						<div contenteditable="true" spellcheck="false" class="markers" style="vertical-align: middle;"><span class="Dad-name">QM6a</span></div>
+						<div contenteditable="true" spellcheck="false" class="gc-plot" data-mode="tetrad-mode"><span class="Dad-name">QM6a</span><span> GC %</span></div>
+						<div contenteditable="true" spellcheck="false" class="markers" style="vertical-align: middle;"><span class="Mom-name">CBS999.97(<i>MAT1-1</i>)</span></div>
+						<div contenteditable="true" spellcheck="false" class="gc-plot" data-mode="tetrad-mode"><span class="Mom-name">CBS999.97(<i>MAT1-1</i>)</span> GC %<span></span></div>
+					</div>
+					<div id="snp-mode-rows" data-mode="snp-mode">
+						<!-- <div class="markers snp-target" style="vertical-align: middle;"><span contenteditable="true" spellcheck="false">Target</span></div> -->
+						<!-- <table class="row-header" style="border-collapse: collapse;">
+							<td class="row-header">
+								<div id="snp-mode-rows" style="display: flex; flex-direction: column;">
+									<div contenteditable="true" spellcheck="false" class="markers" style="vertical-align: middle;">
+										<span>Subject</span>
+									</div>
+								</div>
+							</td>
+						</table> -->
+					</div>
+					<div id="progney-group" data-mode="tetrad-mode">
+						<table class="row-header" class="row-header" style="border-collapse: collapse; width: 100%;">
+							<td data-mode="tetrad-mode" data-mode-type="tetrad-mode-2" contenteditable="true" spellcheck="false" style="text-align: left; vertical-align: middle;">
+								<div style="width: 6em"></div>
+							</td>
+							<td class="row-header">
+								<div style="display: flex; flex-direction: column;">
+									<div class="markers" style="line-height: 32px; margin-bottom: 4px;"><span contenteditable="true" spellcheck="false" style="vertical-align: middle;" class="F1_A-name">F1 A</span></div>
+									<div class="markers" style="line-height: 32px; margin-bottom: 4px;"><span contenteditable="true" spellcheck="false" style="vertical-align: middle;" class="F1_B-name">F1 B</span></div>
+									<div class="markers" style="line-height: 32px; margin-bottom: 4px;"><span contenteditable="true" spellcheck="false" style="vertical-align: middle;" class="F1_C-name">F1 C</span></div>
+									<div class="markers" style="line-height: 32px; margin-bottom: 0px;"><span contenteditable="true" spellcheck="false" style="vertical-align: middle;" class="F1_D-name">F1 D</span></div>
+								</div>
+							</td>
+						</table>
+					</div>
+					<div id="markers_table"></div>
+					<!-- <div contenteditable="true" spellcheck="false" class="gc-plot" data-mode="snp-mode"><span>Reference GC %</span></div> -->
+					<div id="append-row"></div>
+				</div>
+			</td>
+			<td style="width: 100%;">
+				<canvas id="canvas" height="360"></canvas>
+			</td>
+		</tr>
+	</table>
+	
+	<!-- <hr /> -->
+	<table id="bottom_GUI" class="GUI" style="position: sticky; width: 100%; height: 100%; bottom: 0; background: rgba(255,255,255,0.9); border-top: 2px inset lightgray;">
+		<tr>
+			<td>
+				<div style="display: flex;">
+					<label style="flex: 1;"><input type="checkbox" checked onchange="top_GUI.style.position=this.checked?'sticky':'initial';" /> sticky top GUI</label>
+					<label style="flex: 1;"><input type="checkbox" checked onchange="bottom_GUI.style.position=this.checked?'sticky':'initial';" /> sticky bottom GUI</label>
+					<label style="flex: 1;">
+						<input type="button" onclick="window.captureScreen()" value="download" />
+					</label>
+					<label style="flex: 1;">color set <select id="el_select_colorset" value="print">
+						<option value="view">view</option>
+						<option value="print" selected>print</option>
+					</select></label>
+					<label style="flex: 1;"><input type="checkbox" id="el_input_disable_max_length" />max length <input type="number" id="el_input_max_length" value="7148324" min="1" /></label>
+					<label>GC Content window size <select id="el_gc_content_window_size"></select></label>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<div id="append-row-button"></div>
+			</td>
+		</tr>
+		<tr style="display: none;">
+			<td>
+				<label>rip display weight <input type="number" id="el_input_rip_display_weight" value="100" min="1" step="100" /></label>
+			</td>
+		</tr>
+		<tr>
+			<td id="display_buttons_group">
+				<label><input type="checkbox" id="el_display_snp" checked /> display SNP markers</label>
+				<label><input type="checkbox" id="el_display_snv" checked /> display SNV markers</label>
+			</td>
+		</tr>
+	</table>
+
+	<script src="html2canvas.js"></script>
+	<script src="gff.js"></script>
+	<script src="analyser.js"></script>
+	<script src="web_ui.js"></script>
+</body>
+</html>
